@@ -1,12 +1,12 @@
 # Sensor Fusion Self-Driving Car Course
 
-<img src="https://github.com/awbrown90/SensorFusionHighway/blob/master/media/ObstacleDetectionFPS.gif" width="700" height="400" />
+img src="https://github.com/awbrown90/SensorFusionHighway/blob/master/media/ObstacleDetectionFPS.gif" width="700" height="400" 
 
 
 
 [//]: # (Image References)
 
-[image1]: ./images/challengeset.gif "2D FFT"
+[image1]: ./images/challengeset.gif
 
 ![alt text][image1]
 
