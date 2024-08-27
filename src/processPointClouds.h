@@ -1,4 +1,3 @@
-// PCL lib Functions for processing point clouds 
 
 #ifndef PROCESSPOINTCLOUDS_H_
 #define PROCESSPOINTCLOUDS_H_
@@ -22,8 +21,8 @@
 #include <unordered_set>
 #include "quiz/cluster/kdtree.h"
 
-
-template<typename PointT>
+// Template declaration for the ProcessPointClouds class
+template <typename PointT>
 class ProcessPointClouds {
 public:
 
@@ -46,16 +45,6 @@ public:
 
     std::vector<typename pcl::PointCloud<PointT>::Ptr> Clustering(typename pcl::PointCloud<PointT>::Ptr cloud, float clusterTolerance, int minSize, int maxSize);
     
-   void clusterHelper(typename pcl::PointCloud<PointT>::Ptr cloud, std::vector<bool>& processedPoints, int index, typename pcl::PointCloud<PointT>::Ptr cluster, KdTree* tree, float clusterTolerance);
-  // void ProcessPointClouds<PointT>::clusterHelper(int idx, typename pcl::PointCloud<PointT>::Ptr cloud, std::vector<int>& cluster, std::vector<bool>& processed, KdTree* tree, float distanceTol)
-  
-
-
-   
-std::vector<typename pcl::PointCloud<PointT>::Ptr> EuclideanClustering(typename pcl::PointCloud<PointT>::Ptr cloud, float clusterTolerance, int minSize, int maxSize);
-
-    
-    
     Box BoundingBox(typename pcl::PointCloud<PointT>::Ptr cluster);
 
     void savePcd(typename pcl::PointCloud<PointT>::Ptr cloud, std::string file);
@@ -63,11 +52,96 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> EuclideanClustering(typename 
     typename pcl::PointCloud<PointT>::Ptr loadPcd(std::string file);
 
     std::vector<boost::filesystem::path> streamPcd(std::string dataPath);
-  
+
+    // Euclidean clustering method
+    std::vector<typename pcl::PointCloud<PointT>::Ptr> EuclideanClustering(
+        typename pcl::PointCloud<PointT>::Ptr cloud, 
+        float clusterTolerance, 
+        int minSize, 
+        int maxSize);
+
+private:
+    // Private helper function for clustering
+    void clusterHelper(
+        typename pcl::PointCloud<PointT>::Ptr cloud, 
+        std::vector<bool>& processedPoints, 
+        int index, 
+        typename pcl::PointCloud<PointT>::Ptr cluster, 
+        std::shared_ptr<KdTree> tree, 
+        float clusterTolerance);
 };
-#endif /* PROCESSPOINTCLOUDS_H_ */
 
+// Implementation of EuclideanClustering
+template <typename PointT>
+std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::EuclideanClustering(
+    typename pcl::PointCloud<PointT>::Ptr cloud, 
+    float clusterTolerance, 
+    int minSize, 
+    int maxSize)
+{
+    std::shared_ptr<KdTree> tree = std::make_shared<KdTree>();
+  
+    for (int i = 0; i < cloud->points.size(); i++)
+    {
+        PointT point = cloud->points[i];
+        tree->insert({point.x, point.y, point.z}, i);
+    }
 
+    std::vector<typename pcl::PointCloud<PointT>::Ptr> clusters;
+    std::vector<bool> processedPoints(cloud->points.size(), false);    
+
+    for (int i = 0; i < cloud->points.size(); ++i)
+    {
+        if (processedPoints[i])
+            continue;
+
+        typename pcl::PointCloud<PointT>::Ptr cluster(new pcl::PointCloud<PointT>);
+        clusterHelper(cloud, processedPoints, i, cluster, tree, clusterTolerance);
+
+        if ((cluster->size() >= minSize) && (cluster->size() <= maxSize))
+        {
+            cluster->width = cluster->size();
+            cluster->height = 1;
+            cluster->is_dense = true;
+            clusters.push_back(cluster);
+        }
+    }
+
+    std::cout << "Clustering found " << clusters.size() << " clusters" << std::endl;
+
+    return clusters;
+}
+
+// Implementation of clusterHelper
+template <typename PointT>
+void ProcessPointClouds<PointT>::clusterHelper(
+    typename pcl::PointCloud<PointT>::Ptr cloud, 
+    std::vector<bool>& processedPoints, 
+    int index, 
+    typename pcl::PointCloud<PointT>::Ptr cluster, 
+    std::shared_ptr<KdTree> tree, 
+    float clusterTolerance)
+{
+    // Mark the current point as processed
+    processedPoints[index] = true;
+
+    // Add the current point to the cluster
+    cluster->points.push_back(cloud->points[index]);
+
+    // Perform a radius search to find all neighbors within clusterTolerance
+    std::vector<int> nearbyPoints = tree->search({cloud->points[index].x, cloud->points[index].y, cloud->points[index].z}, clusterTolerance);
+
+    // Iterate through each nearby point
+    for (int id : nearbyPoints)
+    {
+        if (!processedPoints[id])  // If the point has not been processed yet
+        {
+            clusterHelper(cloud, processedPoints, id, cluster, tree, clusterTolerance);
+        }
+    }
+}
+
+#endif // PROCESSPOINTCLOUDS_H_
 
 
 
