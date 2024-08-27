@@ -87,8 +87,8 @@ struct KdTree
 		return ids;
 	}
 	
-  
 };
+
 
 
 
