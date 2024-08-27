@@ -119,6 +119,8 @@ std::vector<std::vector<int>> euclideanCluster(const std::vector<std::vector<flo
 
 }
 
+
+
 int main ()
 {
 
