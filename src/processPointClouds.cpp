@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 
+
 //constructor:
 template<typename PointT>
 ProcessPointClouds<PointT>::ProcessPointClouds() {}
@@ -329,77 +330,7 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::C
     return clusters;
 }
 
-
-
-/*template<typename PointT>
-void ProcessPointClouds<PointT>::clusterHelper(int idx, typename pcl::PointCloud<PointT>::Ptr cloud, std::vector<int> cluster, std::vector<bool> processed, KdTree tree, float distanceTol)
-{
-  
-	processed[idx] = true;
-	cluster.push_back(idx);
-	std::vector<int> nearest = tree->search(cloud->points[idx], distanceTol);
-	for(auto id : nearest)
-	{
-		if(!processed[id])
-			clusterHelper(cloud, processed, id,  cluster,  tree, distanceTol);
-
-	}
-}
-
-
-
- ////////// */
-
-
-template<typename PointT>
-std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::EuclideanClustering(typename pcl::PointCloud<PointT>::Ptr cloud, float clusterTolerance, int minSize, int maxSize)
-
- 
-{
-      
-    KdTree* tree = new KdTree;
-
-  
-    for (int i = 0; i < cloud->points.size(); i++)
-    {
-        PointT point = cloud->points[i];
-        tree->insert({point.x, point.y, point.y}, i);
-
-
-    }
-
-    std::vector<typename pcl::PointCloud<PointT>::Ptr> clusters;
-    std::vector<bool> processedPoints(cloud->points.size(), false);    
-
-    for (int i = 0; i < cloud->points.size(); ++i)
-    {
-        if (processedPoints[i])
-            continue;
-
-        typename pcl::PointCloud<PointT>::Ptr cluster(new pcl::PointCloud<PointT>);
-        clusterHelper(cloud, processedPoints, i, cluster, tree, clusterTolerance);
-  
-
-
-
-
-        if ((cluster->size() >= minSize) && (cluster->size() <= maxSize))
-        {
-            cluster->width = cluster->size();
-            cluster->height = 1;
-            cluster->is_dense = true;
-            clusters.push_back(cluster);
-        }
-    }
-
-    std::cout << "clustering found " << clusters.size() << " clusters" << std::endl;
-
-    return clusters;
-}
-
-///////////
-
-
+// Euclidean clustering method is defined in processPointClouds.h and kdtree is in this path src/quiz/cluster
 
 template<typename PointT>
 Box ProcessPointClouds<PointT>::BoundingBox(typename pcl::PointCloud<PointT>::Ptr cluster)
